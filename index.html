@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Commission Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1a202c;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        h2 {
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-size: 22px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 24px;
+        }
+
+        .balance-display {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 24px 0;
+            text-align: center;
+        }
+
+        .balance-positive {
+            color: #48bb78;
+        }
+
+        .balance-negative {
+            color: #f56565;
+        }
+
+        .balance-zero {
+            color: #4299e1;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #718096;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .btn-danger {
+            background: #f56565;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            color: #2d3748;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .vendor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .vendor-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .vendor-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .vendor-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1a202c;
+            margin-bottom: 12px;
+        }
+
+        .vendor-balance {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+
+        .vendor-info {
+            font-size: 14px;
+            color: #718096;
+            margin: 4px 0;
+        }
+
+        .sales-history {
+            margin-top: 24px;
+        }
+
+        .sales-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .sales-entry:last-child {
+            border-bottom: none;
+        }
+
+        .sales-date {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .sales-amount {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .sales-commission {
+            color: #f56565;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #718096;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .link-display {
+            background: #f7fafc;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .copy-btn {
+            background: #48bb78;
+            margin-top: 8px;
+        }
+
+        .copy-btn:hover {
+            background: #38a169;
+        }
+
+        @media (max-width: 768px) {
+            .vendor-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .balance-display {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Admin View -->
+        <div id="adminView" class="hidden">
+            <div class="card">
+                <h1>Admin Dashboard</h1>
+                <p class="subtitle">Manage all vendor accounts and commissions</p>
+                <button class="btn" onclick="showAddVendorModal()">+ Add New Vendor</button>
+                <button class="btn btn-secondary" onclick="exportData()">Export All Data</button>
+            </div>
+
+            <div id="vendorsList" class="vendor-grid"></div>
+        </div>
+
+        <!-- Vendor View -->
+        <div id="vendorView" class="hidden">
+            <div class="card">
+                <h1 id="vendorName"></h1>
+                <p class="subtitle" id="vendorEmail"></p>
+                
+                <div class="balance-label">Current Balance</div>
+                <div class="balance-display" id="vendorBalance">$0.00</div>
+                
+                <button class="btn" onclick="showAddSalesModal()">+ Add Weekend Sales</button>
+            </div>
+
+            <div class="card sales-history">
+                <h2>Sales History</h2>
+                <div id="salesHistoryList"></div>
+            </div>
+        </div>
+
+        <!-- Loading View -->
+        <div id="loadingView" class="card">
+            <div class="loading">Loading...</div>
+        </div>
+
+        <!-- Login View -->
+        <div id="loginView" class="hidden">
+            <div class="card">
+                <h1>Vendor Commission Tracker</h1>
+                <p class="subtitle">Enter admin password to access dashboard</p>
+                <div class="form-group">
+                    <label>Admin Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter password">
+                </div>
+                <button class="btn" onclick="adminLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Vendor Modal -->
+    <div id="addVendorModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('addVendorModal')">&times;</span>
+            <h2>Add New Vendor</h2>
+            <div class="form-group">
+                <label>Vendor Name</label>
+                <input type="text" id="newVendorName" placeholder="John's Booth">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="newVendorEmail" placeholder="john@example.com">
+            </div>
+            <div class="form-group">
+                <label>Prepayment Amount ($)</label>
+                <input type="number" id="newVendorPrepayment" placeholder="500" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Commission Rate (%)</label>
+                <input type="number" id="newVendorCommission" placeholder="15" step="0.01">
+            </div>
+            <button class="btn" onclick="createVendor()">Create Vendor</button>
+            <div id="vendorLinkDisplay" class="hidden">
+                <h3 style="margin-top: 20px;">Vendor Link Created!</h3>
+                <div class="link-display" id="generatedLink"></div>
+                <button class="btn copy-btn" onclick="copyVendorLink()">Copy Link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Sales Modal -->
+    <div id="addSalesModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('addSalesModal')">&times;</span>
+            <h2>Add Weekend Sales</h2>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="salesDate">
+            </div>
+            <div class="form-group">
+                <label>Gross Sales ($)</label>
+                <input type="number" id="salesAmount" placeholder="0.00" step="0.01">
+            </div>
+            <button class="btn" onclick="addSales()">Submit Sales</button>
+        </div>
+    </div>
+
+    <!-- Edit Vendor Modal -->
+    <div id="editVendorModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('editVendorModal')">&times;</span>
+            <h2>Edit Vendor</h2>
+            <input type="hidden" id="editVendorId">
+            <div class="form-group">
+                <label>Vendor Name</label>
+                <input type="text" id="editVendorName">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="editVendorEmail">
+            </div>
+            <div class="form-group">
+                <label>Prepayment Amount ($)</label>
+                <input type="number" id="editVendorPrepayment" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Commission Rate (%)</label>
+                <input type="number" id="editVendorCommission" step="0.01">
+            </div>
+            <button class="btn" onclick="updateVendor()">Update Vendor</button>
+            <button class="btn btn-danger" onclick="deleteVendor()">Delete Vendor</button>
+        </div>
+    </div>
+
+    <script>
+// Simple data storage using localStorage (can be upgraded to Firebase later)
+const ADMIN_PASSWORD = 'admin123'; // Change this to your desired password
+const STORAGE_KEY = 'vendorTrackerData';
+
+let currentView = 'loading';
+let currentVendorId = null;
+let isAdmin = false;
+
+// Data structure
+let appData = {
+    vendors: {},
+    sales: {}
+};
+
+// Initialize app
+function init() {
+    loadData();
+    
+    // Check if admin view
+    const urlParams = new URLSearchParams(window.location.search);
+    const vendorId = urlParams.get('v');
+    
+    if (vendorId) {
+        // Vendor view
+        loadVendorView(vendorId);
+    } else {
+        // Admin view - show login
+        showView('loginView');
+    }
+}
+
+// Data management
+function loadData() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+        appData = JSON.parse(stored);
+    }
+}
+
+function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+}
+
+// View management
+function showView(viewId) {
+    ['adminView', 'vendorView', 'loadingView', 'loginView'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(viewId).classList.remove('hidden');
+    currentView = viewId;
+}
+
+// Admin login
+function adminLogin() {
+    const password = document.getElementById('adminPassword').value;
+    if (password === ADMIN_PASSWORD) {
+        isAdmin = true;
+        loadAdminView();
+    } else {
+        alert('Incorrect password');
+    }
+}
+
+// Admin view
+function loadAdminView() {
+    showView('adminView');
+    renderVendorsList();
+}
+
+function renderVendorsList() {
+    const container = document.getElementById('vendorsList');
+    container.innerHTML = '';
+    
+    if (Object.keys(appData.vendors).length === 0) {
+        container.innerHTML = '<div class="card"><p style="text-align: center; color: #718096;">No vendors yet. Click "Add New Vendor" to get started.</p></div>';
+        return;
+    }
+    
+    Object.entries(appData.vendors).forEach(([id, vendor]) => {
+        const balance = calculateVendorBalance(id);
+        const balanceClass = balance > 0 ? 'balance-positive' : balance < 0 ? 'balance-negative' : 'balance-zero';
+        
+        const card = document.createElement('div');
+        card.className = 'vendor-card';
+        card.innerHTML = `
+            <div class="vendor-name">${vendor.name}</div>
+            <div class="vendor-info">${vendor.email}</div>
+            <div class="vendor-balance ${balanceClass}">$${balance.toFixed(2)}</div>
+            <div class="vendor-info">Prepayment: $${vendor.prepayment.toFixed(2)}</div>
+            <div class="vendor-info">Commission: ${vendor.commissionRate}%</div>
+            <button class="btn" onclick="viewVendorDetails('${id}')">View Details</button>
+            <button class="btn btn-secondary" onclick="editVendor('${id}')">Edit</button>
+            <button class="btn btn-secondary" onclick="copyVendorLinkById('${id}')">Copy Link</button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function calculateVendorBalance(vendorId) {
+    const vendor = appData.vendors[vendorId];
+    if (!vendor) return 0;
+    
+    let balance = vendor.prepayment;
+    
+    // Subtract all commissions
+    const vendorSales = Object.values(appData.sales).filter(sale => sale.vendorId === vendorId);
+    vendorSales.forEach(sale => {
+        balance -= sale.commission;
+    });
+    
+    return balance;
+}
+
+// Vendor view
+function loadVendorView(vendorId) {
+    currentVendorId = vendorId;
+    const vendor = appData.vendors[vendorId];
+    
+    if (!vendor) {
+        alert('Vendor not found');
+        return;
+    }
+    
+    showView('vendorView');
+    
+    document.getElementById('vendorName').textContent = vendor.name;
+    document.getElementById('vendorEmail').textContent = vendor.email;
+    
+    updateVendorBalance();
+    renderSalesHistory();
+}
+
+function updateVendorBalance() {
+    const balance = calculateVendorBalance(currentVendorId);
+    const balanceEl = document.getElementById('vendorBalance');
+    
+    balanceEl.textContent = balance >= 0 ? `$${balance.toFixed(2)} Credit` : `Owes $${Math.abs(balance).toFixed(2)}`;
+    
+    balanceEl.className = 'balance-display';
+    if (balance > 0) {
+        balanceEl.classList.add('balance-positive');
+    } else if (balance < 0) {
+        balanceEl.classList.add('balance-negative');
+    } else {
+        balanceEl.classList.add('balance-zero');
+    }
+}
+
+function renderSalesHistory() {
+    const container = document.getElementById('salesHistoryList');
+    const vendorSales = Object.entries(appData.sales)
+        .filter(([id, sale]) => sale.vendorId === currentVendorId)
+        .sort((a, b) => new Date(b[1].date) - new Date(a[1].date));
+    
+    if (vendorSales.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #718096;">No sales recorded yet</p>';
+        return;
+    }
+    
+    container.innerHTML = vendorSales.map(([id, sale]) => `
+        <div class="sales-entry">
+            <div>
+                <div class="sales-date">${formatDate(sale.date)}</div>
+                <div class="sales-amount">Gross: $${sale.grossSales.toFixed(2)}</div>
+                <div class="sales-commission">Commission: $${sale.commission.toFixed(2)}</div>
+            </div>
+            ${isAdmin ? `<button class="btn btn-danger" style="width: auto; padding: 8px 16px; margin: 0;" onclick="deleteSale('${id}')">Delete</button>` : ''}
+        </div>
+    `).join('');
+}
+
+function viewVendorDetails(vendorId) {
+    window.open(`?v=${vendorId}`, '_blank');
+}
+
+// Modal management
+function showAddVendorModal() {
+    document.getElementById('vendorLinkDisplay').classList.add('hidden');
+    document.getElementById('addVendorModal').classList.add('active');
+    
+    // Clear form
+    document.getElementById('newVendorName').value = '';
+    document.getElementById('newVendorEmail').value = '';
+    document.getElementById('newVendorPrepayment').value = '';
+    document.getElementById('newVendorCommission').value = '';
+}
+
+function showAddSalesModal() {
+    document.getElementById('addSalesModal').classList.add('active');
+    // Set today's date as default
+    document.getElementById('salesDate').valueAsDate = new Date();
+    document.getElementById('salesAmount').value = '';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
+
+// Vendor management
+function createVendor() {
+    const name = document.getElementById('newVendorName').value.trim();
+    const email = document.getElementById('newVendorEmail').value.trim();
+    const prepayment = parseFloat(document.getElementById('newVendorPrepayment').value);
+    const commissionRate = parseFloat(document.getElementById('newVendorCommission').value);
+    
+    if (!name || !email || isNaN(prepayment) || isNaN(commissionRate)) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    const vendorId = generateId();
+    appData.vendors[vendorId] = {
+        id: vendorId,
+        name,
+        email,
+        prepayment,
+        commissionRate,
+        createdAt: new Date().toISOString()
+    };
+    
+    saveData();
+    
+    // Show the generated link
+    const link = `${window.location.origin}${window.location.pathname}?v=${vendorId}`;
+    document.getElementById('generatedLink').textContent = link;
+    document.getElementById('vendorLinkDisplay').classList.remove('hidden');
+    
+    renderVendorsList();
+}
+
+function editVendor(vendorId) {
+    const vendor = appData.vendors[vendorId];
+    if (!vendor) return;
+    
+    document.getElementById('editVendorId').value = vendorId;
+    document.getElementById('editVendorName').value = vendor.name;
+    document.getElementById('editVendorEmail').value = vendor.email;
+    document.getElementById('editVendorPrepayment').value = vendor.prepayment;
+    document.getElementById('editVendorCommission').value = vendor.commissionRate;
+    
+    document.getElementById('editVendorModal').classList.add('active');
+}
+
+function updateVendor() {
+    const vendorId = document.getElementById('editVendorId').value;
+    const vendor = appData.vendors[vendorId];
+    
+    if (!vendor) return;
+    
+    vendor.name = document.getElementById('editVendorName').value.trim();
+    vendor.email = document.getElementById('editVendorEmail').value.trim();
+    vendor.prepayment = parseFloat(document.getElementById('editVendorPrepayment').value);
+    vendor.commissionRate = parseFloat(document.getElementById('editVendorCommission').value);
+    
+    saveData();
+    closeModal('editVendorModal');
+    renderVendorsList();
+}
+
+function deleteVendor() {
+    const vendorId = document.getElementById('editVendorId').value;
+    
+    if (!confirm('Are you sure you want to delete this vendor? This will also delete all their sales records.')) {
+        return;
+    }
+    
+    // Delete vendor
+    delete appData.vendors[vendorId];
+    
+    // Delete all sales for this vendor
+    Object.keys(appData.sales).forEach(saleId => {
+        if (appData.sales[saleId].vendorId === vendorId) {
+            delete appData.sales[saleId];
+        }
+    });
+    
+    saveData();
+    closeModal('editVendorModal');
+    renderVendorsList();
+}
+
+function copyVendorLinkById(vendorId) {
+    const link = `${window.location.origin}${window.location.pathname}?v=${vendorId}`;
+    navigator.clipboard.writeText(link).then(() => {
+        alert('Link copied to clipboard!');
+    });
+}
+
+function copyVendorLink() {
+    const link = document.getElementById('generatedLink').textContent;
+    navigator.clipboard.writeText(link).then(() => {
+        alert('Link copied to clipboard!');
+    });
+}
+
+// Sales management
+function addSales() {
+    const date = document.getElementById('salesDate').value;
+    const grossSales = parseFloat(document.getElementById('salesAmount').value);
+    
+    if (!date || isNaN(grossSales) || grossSales < 0) {
+        alert('Please enter valid date and sales amount');
+        return;
+    }
+    
+    const vendor = appData.vendors[currentVendorId];
+    const commission = (grossSales * vendor.commissionRate) / 100;
+    
+    const saleId = generateId();
+    appData.sales[saleId] = {
+        id: saleId,
+        vendorId: currentVendorId,
+        date,
+        grossSales,
+        commission,
+        createdAt: new Date().toISOString()
+    };
+    
+    saveData();
+    closeModal('addSalesModal');
+    updateVendorBalance();
+    renderSalesHistory();
+}
+
+function deleteSale(saleId) {
+    if (!confirm('Are you sure you want to delete this sales entry?')) {
+        return;
+    }
+    
+    delete appData.sales[saleId];
+    saveData();
+    
+    if (currentView === 'adminView') {
+        renderVendorsList();
+    } else {
+        updateVendorBalance();
+        renderSalesHistory();
+    }
+}
+
+// Export data
+function exportData() {
+    const exportData = {
+        exportDate: new Date().toISOString(),
+        vendors: [],
+        summary: {
+            totalVendors: Object.keys(appData.vendors).length,
+            totalSales: 0,
+            totalCommissions: 0
+        }
+    };
+    
+    Object.entries(appData.vendors).forEach(([id, vendor]) => {
+        const balance = calculateVendorBalance(id);
+        const vendorSales = Object.values(appData.sales).filter(sale => sale.vendorId === id);
+        const totalSales = vendorSales.reduce((sum, sale) => sum + sale.grossSales, 0);
+        const totalCommissions = vendorSales.reduce((sum, sale) => sum + sale.commission, 0);
+        
+        exportData.vendors.push({
+            name: vendor.name,
+            email: vendor.email,
+            prepayment: vendor.prepayment,
+            commissionRate: vendor.commissionRate,
+            currentBalance: balance,
+            totalSales,
+            totalCommissions,
+            salesCount: vendorSales.length,
+            sales: vendorSales.map(sale => ({
+                date: sale.date,
+                grossSales: sale.grossSales,
+                commission: sale.commission
+            }))
+        });
+        
+        exportData.summary.totalSales += totalSales;
+        exportData.summary.totalCommissions += totalCommissions;
+    });
+    
+    // Download as JSON
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vendor-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+}
+
+// Utility functions
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+// Click outside modal to close
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('active');
+    }
+}
+
+// Initialize on load
+window.onload = init;
+    </script>
+</body>
+</html>
